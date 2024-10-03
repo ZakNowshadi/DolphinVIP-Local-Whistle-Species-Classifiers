@@ -7,12 +7,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
-from Main import getArrayOfAllSpeciesObjects
-from Main import getTrainingDataDirectory
-from Main import getValidationDataDirectory
+from OLD_Main import getArrayOfAllSpeciesObjects
+from OLD_Main import getTrainingDataDirectory
+from OLD_Main import getValidationDataDirectory
 
 
 speciesObjectsArray = getArrayOfAllSpeciesObjects()

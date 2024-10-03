@@ -17,14 +17,14 @@ def countNumberOfFilesInDirectoryAndSubDirectories(directory):
 
 
 # Load the training dataset
-trainingDataDirectory = pathlib.Path("Images/Training")
+trainingDataDirectory = pathlib.Path("../Images/Training")
 
 
 def getTrainingDataDirectory():
     return trainingDataDirectory
 
 
-validationDataDirectory = pathlib.Path("Images/Validation")
+validationDataDirectory = pathlib.Path("../Images/Validation")
 
 
 def getValidationDataDirectory():
