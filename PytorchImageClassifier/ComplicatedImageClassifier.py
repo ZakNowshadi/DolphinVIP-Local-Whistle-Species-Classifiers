@@ -64,12 +64,12 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-model = Net()
+net = Net()
 
 # Define a loss function and optimizer
 import torch.optim as optim
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)
+optimizer = optim.SGD(net.parameters(), lr=0.002, momentum=0.9)
 
 
 ## Train the network ##
@@ -84,7 +84,7 @@ for epoch in range(2):  # loop over the dataset multiple times
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        outputs = model(inputs)
+        outputs = net(inputs)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -97,34 +97,4 @@ for epoch in range(2):  # loop over the dataset multiple times
 
 print('Finished Training')
 
-correct = 0
-total = 0
-# since we're not training, we don't need to calculate the gradients for our outputs
-with torch.no_grad():
-    for data in validationDataLoader:
-        images, labels = data
-        # calculate outputs by running images through the network
-        outputs = model(images)
-        # the class with the highest energy is what we choose as prediction
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
 
-print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-
-
-## CHECK FOR SEPARATE IMAGES ## 
-classes = [
-    "bottlenose",
-    "common",
-    "melon-headed"
-]
-
-model.eval()
-for i in range(20):
-    x, y = validationImagesDataset[i][0], validationImagesDataset[i][1]
-    with torch.no_grad():
-        x = x.to(device)
-        pred = model(x)
-        predicted, actual = classes[pred[0].argmax(0)], classes[y]
-        print(f'Predicted: "{predicted}", Actual: "{actual}"')

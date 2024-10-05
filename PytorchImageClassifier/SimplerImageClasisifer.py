@@ -1,5 +1,5 @@
 # Using: https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
-import optim
+
 ## Hyperparameterization (parameters that must be chosen)
 # - batch size
 # - for conv2d(3, 6, 5) <This layer will learn 6 5x5 filters, which will be convolved over the input image to detect different features>:
@@ -36,11 +36,11 @@ transform = transforms.Compose(
      # Greyscale images
      transforms.Normalize((0.5,), (0.5,))])
 
-trainingImagesDataset = torchvision.datasets.ImageFolder(root='Images/Training', transform=transform)
+trainingImagesDataset = torchvision.datasets.ImageFolder(root='../Images/Training', transform=transform)
 trainingDataLoader = DataLoader(trainingImagesDataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Getting the test images from the Images/Validation folder
-validationImagesDataset = torchvision.datasets.ImageFolder(root='Images/Validation', transform=transform)
+validationImagesDataset = torchvision.datasets.ImageFolder(root='../Images/Validation', transform=transform)
 validationDataLoader = DataLoader(validationImagesDataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Defining the model
@@ -57,35 +57,32 @@ print(f"Using {device} device")
 
 
 # Using - https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html#:~:text=%23%20Get%20cpu%2C%20gpu,(model)
-# class NeuralNetwork(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.flatten = nn.Flatten()
-#         self.linear_relu_stack = nn.Sequential(
-#             # TODO: Figure out these numbers
-#             nn.Linear(83426, 512),
-#             nn.ReLU(),
-#             nn.Linear(512, 512),
-#             nn.ReLU(),
-#             nn.Linear(512, 10),
-#             nn.ReLU()
-#         )
-#
-#     def forward(self, x):
-#         x = self.flatten(x)
-#         logits = self.linear_relu_stack(x)
-#         return logits
-#
-#
-# model = NeuralNetwork().to(device)
-# print(model)
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.flatten = nn.Flatten()
+        self.linear_relu_stack = nn.Sequential(
+            # TODO: Figure out these numbers
+            nn.Linear(83426, 512),
+            nn.ReLU(),
+            nn.Linear(512, 512),
+            nn.ReLU(),
+            nn.Linear(512, 10),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        x = self.flatten(x)
+        logits = self.linear_relu_stack(x)
+        return logits
+
+
+model = NeuralNetwork().to(device)
 
 # Model parameters
 
-# lossFunction = nn.CrossEntropyLoss()
-# optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
-
-
+lossFunction = nn.CrossEntropyLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 
 # Training the model
@@ -125,35 +122,6 @@ def test(dataloader, model, loss_fn):
     correct /= size
     print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
-class Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv1 = nn.Conv2d(1, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = torch.flatten(x, 1) # flatten all dimensions except batch
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
-
-
-net = Net()
-
-
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-
-criterion = nn.CrossEntropyLoss()
-
 numberOfEpochs = 5
 
 for t in range(numberOfEpochs):
@@ -162,3 +130,27 @@ for t in range(numberOfEpochs):
     test(validationDataLoader, model, lossFunction)
 print("Done!")
 
+
+# Saving the model
+pathToSaveModel = "models/SimplerImageClassifier.pth"
+torch.save(model.state_dict(), pathToSaveModel)
+print("Saved PyTorch Model State to " + pathToSaveModel)
+
+# Loading the model
+model = NeuralNetwork().to(device)
+model.load_state_dict(torch.load(pathToSaveModel, weights_only=True))
+
+classes = [
+    "bottlenose",
+    "common",
+    "melon-headed",
+]
+
+model.eval()
+for i in range(1000):
+    x, y = validationImagesDataset[i][0], validationImagesDataset[i][1]
+    with torch.no_grad():
+        x = x.to(device)
+        pred = model(x)
+        predicted, actual = classes[pred[0].argmax(0)], classes[y]
+        print(f'Image {i+1} - Predicted: "{predicted}", Actual: "{actual}"')
