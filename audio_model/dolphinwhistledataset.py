@@ -64,7 +64,7 @@ if __name__ == "__main__":
     AUDIO_DIR = ""
     SAMPLE_RATE = 0
 
-    # 
+    # TODO look more into the different settings
     mel_spectrogram = torchaudio.transforms.MelSpectrogram(
         sample_rate=SAMPLE_RATE,
         n_fft=1024,
