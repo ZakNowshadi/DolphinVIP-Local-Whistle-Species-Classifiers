@@ -1,5 +1,5 @@
-# Using: https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
-import optim
+# Using: https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+
 ## Hyperparameterization (parameters that must be chosen)
 # - batch size
 # - for conv2d(3, 6, 5) <This layer will learn 6 5x5 filters, which will be convolved over the input image to detect different features>:
@@ -17,118 +17,38 @@ import optim
 # Repo to make GrayScale - https://github.com/dolphin-acoustics-vip/Generating-Datasets
 
 import torch
-from torch import nn
-from torch.utils.data import DataLoader
 import torchvision
-from torchvision import datasets
 import torchvision.transforms as transforms
-from torchvision.transforms import ToTensor
-import torch.nn.functional as F
-import torch.optim as optim
 
-BATCH_SIZE = 64
-
-# Getting the training images from the Images/Training folder
-
+# Used to normalise the data
 transform = transforms.Compose(
-    [transforms.Grayscale(num_output_channels=1),
-     transforms.ToTensor(),
-     # Greyscale images
-     transforms.Normalize((0.5,), (0.5,))])
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-trainingImagesDataset = torchvision.datasets.ImageFolder(root='Images/Training', transform=transform)
-trainingDataLoader = DataLoader(trainingImagesDataset, batch_size=BATCH_SIZE, shuffle=True)
+batch_size = 4
 
-# Getting the test images from the Images/Validation folder
-validationImagesDataset = torchvision.datasets.ImageFolder(root='Images/Validation', transform=transform)
-validationDataLoader = DataLoader(validationImagesDataset, batch_size=BATCH_SIZE, shuffle=True)
+# Download in training set+loader and test set+loader
+trainingImagesDataset = torchvision.datasets.CIFAR10(root='../Images/Training', train=True,
+                                        download=True, transform=transform)
+trainingDataLoader = torch.utils.data.DataLoader(trainingImagesDataset, batch_size=batch_size,
+                                          shuffle=True, num_workers=2)
 
-# Defining the model
+validationImagesDataset = torchvision.datasets.CIFAR10(root='../Images/Validation', train=False,
+                                       download=True, transform=transform)
+validationDataLoader = torch.utils.data.DataLoader(validationImagesDataset, batch_size=batch_size,
+                                         shuffle=False, num_workers=2)
 
-# Get cpu, gpu or mps device for training.
-device = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
-print(f"Using {device} device")
+classes = ('bottlenose', 'common', 'melon-headed')
 
 
-# Using - https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html#:~:text=%23%20Get%20cpu%2C%20gpu,(model)
-# class NeuralNetwork(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.flatten = nn.Flatten()
-#         self.linear_relu_stack = nn.Sequential(
-#             # TODO: Figure out these numbers
-#             nn.Linear(83426, 512),
-#             nn.ReLU(),
-#             nn.Linear(512, 512),
-#             nn.ReLU(),
-#             nn.Linear(512, 10),
-#             nn.ReLU()
-#         )
-#
-#     def forward(self, x):
-#         x = self.flatten(x)
-#         logits = self.linear_relu_stack(x)
-#         return logits
-#
-#
-# model = NeuralNetwork().to(device)
-# print(model)
-
-# Model parameters
-
-# lossFunction = nn.CrossEntropyLoss()
-# optimizer = torch.optim.SGD(model.parameters(), lr=0.001)
-
-
-
-
-# Training the model
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
-
-        # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
-
-        # Backpropagation
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        if batch % 100 == 0:
-            loss, current = loss.item(), (batch + 1) * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-
-
-# Testing the model function
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
-    test_loss, correct = 0, 0
-    with torch.no_grad():
-        for X, y in dataloader:
-            X, y = X.to(device), y.to(device)
-            pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-    test_loss /= num_batches
-    correct /= size
-    print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+# Define the neural network
+import torch.nn as nn
+import torch.nn.functional as F
 
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 6, 5)
+        self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
@@ -144,18 +64,17 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
+model = Net()
 
-
-net = Net()
-
-
+# Define a loss function and optimizer
+import torch.optim as optim
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)
 
-criterion = nn.CrossEntropyLoss()
 
-numberOfEpochs = 5
-for epoch in range(numberOfEpochs):
+## Train the network ##
+for epoch in range(2):  # loop over the dataset multiple times
+
     running_loss = 0.0
     for i, data in enumerate(trainingDataLoader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -165,7 +84,7 @@ for epoch in range(numberOfEpochs):
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        outputs = net(inputs)
+        outputs = model(inputs)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -178,10 +97,34 @@ for epoch in range(numberOfEpochs):
 
 print('Finished Training')
 
+correct = 0
+total = 0
+# since we're not training, we don't need to calculate the gradients for our outputs
+with torch.no_grad():
+    for data in validationDataLoader:
+        images, labels = data
+        # calculate outputs by running images through the network
+        outputs = model(images)
+        # the class with the highest energy is what we choose as prediction
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
 
-# for t in range(numberOfEpochs):
-#     print(f"Epoch {t+1}\n-------------------------------")
-#     train(trainingDataLoader, model, lossFunction, optimizer)
-#     test(validationDataLoader, model, lossFunction)
-# print("Done!")
+print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
 
+
+## CHECK FOR SEPARATE IMAGES ## 
+classes = [
+    "bottlenose",
+    "common",
+    "melon-headed"
+]
+
+model.eval()
+for i in range(20):
+    x, y = validationImagesDataset[i][0], validationImagesDataset[i][1]
+    with torch.no_grad():
+        x = x.to(device)
+        pred = model(x)
+        predicted, actual = classes[pred[0].argmax(0)], classes[y]
+        print(f'Predicted: "{predicted}", Actual: "{actual}"')
