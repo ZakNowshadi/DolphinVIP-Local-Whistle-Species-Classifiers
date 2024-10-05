@@ -21,9 +21,6 @@ class DolphinWhistleDataset(Dataset):
         name_set=list(name_set)
         self.datalist=name_set
 
-
-
-
     # Method to define how to use length syntax 
     # len(dolphin dataset) = ?
     # number of sample?
@@ -61,3 +58,15 @@ class DolphinWhistleDataset(Dataset):
     # TODO implement this based off database structure we use
     def _get_audio_sample_label(self, index):
         return self.annotations.iloc[index, 6]
+    
+if __name__ == "__main__":
+    ANNOTATIONS_FILE = ""
+    AUDIO_DIR = ""
+    SAMPLE_RATE = 0
+
+    # 
+    mel_spectrogram = torchaudio.transforms.MelSpectrogram(
+        sample_rate=SAMPLE_RATE,
+        n_fft=1024,
+        hop_length=512,
+        n_mels=64 )
