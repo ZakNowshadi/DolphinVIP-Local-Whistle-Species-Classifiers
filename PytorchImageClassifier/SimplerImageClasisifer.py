@@ -1,5 +1,4 @@
 # Using: https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
-
 ## Hyperparameterization (parameters that must be chosen)
 # - batch size
 # - for conv2d(3, 6, 5) <This layer will learn 6 5x5 filters, which will be convolved over the input image to detect different features>:
@@ -25,6 +24,7 @@ import torchvision.transforms as transforms
 from torchvision.transforms import ToTensor
 import torch.nn.functional as F
 import torch.optim as optim
+import optuna
 
 BATCH_SIZE = 64
 
@@ -56,101 +56,118 @@ device = (
 print(f"Using {device} device")
 
 
-# Using - https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html#:~:text=%23%20Get%20cpu%2C%20gpu,(model)
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            # TODO: Figure out these numbers
-            nn.Linear(83426, 512),
-            nn.ReLU(),
-            nn.Linear(512, 512),
-            nn.ReLU(),
-            nn.Linear(512, 10),
-            nn.ReLU()
-        )
+# Defining the objective function
+# Using: https://github.com/optuna/optuna-examples/blob/main/pytorch/pytorch_simple.py
+def objective(trial):
+    learningRate = trial.suggest_float("learningRate", 1e-5, 1e-1, log=True)
+    numberOfNeurons = trial.suggest_int("numberOfNeurons", 16, 512, step=16)
+    batchSize = trial.suggest_int("batchSize", 16, 128, step=16)
 
-    def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+    # Updating the data loads
+    trainingDataLoader = DataLoader(trainingImagesDataset, batch_size=batchSize, shuffle=True)
+    validationDataLoader = DataLoader(validationImagesDataset, batch_size=batchSize, shuffle=True)
 
+    # Using - https://pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html#:~:text=%23%20Get%20cpu%2C%20gpu,(model)
+    class NeuralNetwork(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.flatten = nn.Flatten()
+            self.linear_relu_stack = nn.Sequential(
+                # TODO: Figure out these numbers
+                nn.Linear(83426, 512),
+                nn.ReLU(),
+                nn.Linear(512, 512),
+                nn.ReLU(),
+                nn.Linear(512, 10),
+                nn.ReLU()
+            )
 
-model = NeuralNetwork().to(device)
+        def forward(self, x):
+            x = self.flatten(x)
+            logits = self.linear_relu_stack(x)
+            return logits
 
-# Model parameters
+    model = NeuralNetwork().to(device)
 
-lossFunction = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+    # Model parameters
 
+    lossFunction = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
 
-# Training the model
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X, y) in enumerate(dataloader):
-        X, y = X.to(device), y.to(device)
-
-        # Compute prediction error
-        pred = model(X)
-        loss = loss_fn(pred, y)
-
-        # Backpropagation
-        loss.backward()
-        optimizer.step()
-        optimizer.zero_grad()
-
-        if batch % 100 == 0:
-            loss, current = loss.item(), (batch + 1) * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
-
-
-# Testing the model function
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
-    test_loss, correct = 0, 0
-    with torch.no_grad():
-        for X, y in dataloader:
+    # Training the model
+    def train(dataloader, model, loss_fn, optimizer):
+        size = len(dataloader.dataset)
+        model.train()
+        for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device), y.to(device)
+
+            # Compute prediction error
             pred = model(X)
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-    test_loss /= num_batches
-    correct /= size
-    print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+            loss = loss_fn(pred, y)
 
-numberOfEpochs = 5
+            # Backpropagation
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
 
-for t in range(numberOfEpochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    train(trainingDataLoader, model, lossFunction, optimizer)
-    test(validationDataLoader, model, lossFunction)
-print("Done!")
+            if batch % 100 == 0:
+                loss, current = loss.item(), (batch + 1) * len(X)
+                print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+
+    # Testing the model function
+    def test(dataloader, model, loss_fn):
+        size = len(dataloader.dataset)
+        numberOfBatches = len(dataloader)
+        model.eval()
+        testLoss, correct = 0, 0
+        with torch.no_grad():
+            for X, y in dataloader:
+                X, y = X.to(device), y.to(device)
+                pred = model(X)
+                testLoss += loss_fn(pred, y).item()
+                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+        testLoss /= numberOfBatches
+        correct /= size
+        print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {testLoss:>8f} \n")
+
+        accuracy = 100 * correct
+        return accuracy
+    # numberOfEpochs = 5
+    # for t in range(numberOfEpochs):
+    #     print(f"Epoch {t + 1}\n-------------------------------")
+    #     train(trainingDataLoader, model, lossFunction, optimizer)
+    #     testLoss, accuracy = test(validationDataLoader, model, lossFunction)
+    #     # test(validationDataLoader, model, lossFunction)
+    # print("Done!")
 
 
-# Saving the model
-pathToSaveModel = "models/SimplerImageClassifier.pth"
-torch.save(model.state_dict(), pathToSaveModel)
-print("Saved PyTorch Model State to " + pathToSaveModel)
 
-# Loading the model
-model = NeuralNetwork().to(device)
-model.load_state_dict(torch.load(pathToSaveModel, weights_only=True))
 
-classes = [
-    "bottlenose",
-    "common",
-    "melon-headed",
-]
+study = optuna.create_study(direction="minimize")
+study.optimize(objective, n_trials=100)
 
-model.eval()
-for i in range(1000):
-    x, y = validationImagesDataset[i][0], validationImagesDataset[i][1]
-    with torch.no_grad():
-        x = x.to(device)
-        pred = model(x)
-        predicted, actual = classes[pred[0].argmax(0)], classes[y]
-        print(f'Image {i+1} - Predicted: "{predicted}", Actual: "{actual}"')
+print("Optimimal hyperparameters: ", study.best_params)
+
+# # Saving the model
+# pathToSaveModel = "models/SimplerImageClassifier.pth"
+# torch.save(model.state_dict(), pathToSaveModel)
+# print("Saved PyTorch Model State to " + pathToSaveModel)
+#
+# # Loading the model
+# model = NeuralNetwork().to(device)
+# model.load_state_dict(torch.load(pathToSaveModel, weights_only=True))
+#
+# classes = [
+#     "bottlenose",
+#     "common",
+#     "melon-headed",
+# ]
+#
+# model.eval()
+# for i in range(1000):
+#     x, y = validationImagesDataset[i][0], validationImagesDataset[i][1]
+#     with torch.no_grad():
+#         x = x.to(device)
+#         pred = model(x)
+#         predicted, actual = classes[pred[0].argmax(0)], classes[y]
+#         print(f'Image {i+1} - Predicted: "{predicted}", Actual: "{actual}"')
