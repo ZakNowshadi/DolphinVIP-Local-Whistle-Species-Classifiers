@@ -14,12 +14,6 @@ Basic Method Two: Grid
 
 TOOLS 
 
-SciKit Learn (and SciKit-optimise):
-https://scikit-learn.org/stable/
-https://scikit-optimize.github.io/stable/index.html
-- Implementations for grid search and random search
-- Trains and evaluates a model in a 'k fold cross-validation setting' over various parameter choices
- 
 
 Optuna:
 https://optuna.org 
