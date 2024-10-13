@@ -1,8 +1,23 @@
 import torch
 import torchaudio
 from torch import nn
-from network import network
+from network import Network
 from torch import optim
+from dolphinwhistledataset import DolphinWhistleDataset
+from torch.utils.data import DataLoader
+
+# using tutorial: https://www.youtube.com/watch?v=MMkeLjcBTcI
+
+
+# parameters that can be changed and should be decided
+batch_size = None
+epochs = None
+learning_rate = None
+data_file = ""
+audio_file = ""
+sample_rate = None
+number_samples = None
+device_used = "cpu"
 
 def train_epoch(neural_network, data, loss_function, optimiser, device):
     for input, target in data:
@@ -24,16 +39,25 @@ def train_model(neural_network, data, loss_function, optimiser, device, num_epoc
         train_epoch(neural_network, data, loss_function, optimiser, device)
     print("finished")
 
+
+def data_loader(training_data, batch_size):
+    data_loader = DataLoader(training_data, batch_size = batch_size)
+    return data_loader
+
+# load the data
+data = DolphinWhistleDataset(data_file, audio_file)
+load_data = data_loader(data, batch_size)
+
 # create the neural network
-neural_network = network().to("cpu")
+neural_network = Network().to(device_used)
 
 # initialise loss function
 loss_function = nn.CrossEntropyLoss()
 
 # initialise optimiser 
-optimiser = torch.optim.Adam(neural_network.parameters(), lr = 0.001)
+optimiser = torch.optim.Adam(neural_network.parameters(), lr = learning_rate)
 
 # train the model
-train_model(neural_network, data, loss_function, optimiser, "cpu", 10)
+train_model(neural_network, load_data, loss_function, optimiser, device_used, epochs)
 
 

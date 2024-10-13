@@ -1,6 +1,8 @@
 from torch import nn
+# Using the tutorial: https://www.youtube.com/watch?v=SQ1iIKs190Q
 
-class network(nn.Module):
+
+class Network(nn.Module):
 
     def __init__(self):
         super().__init__()
