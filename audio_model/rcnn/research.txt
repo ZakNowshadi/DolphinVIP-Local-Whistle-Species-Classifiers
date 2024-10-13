@@ -1,0 +1,28 @@
+https://uk.mathworks.com/help/vision/ug/getting-started-with-r-cnn-fast-r-cnn-and-faster-r-cnn.html
+
+Basic RCNN:
+1. Generates region proposals using an algorithm e.g. Edge Boxes
+2. The proposal regions are cropped out of the image and resized.
+3. The CNN classifies the cropped and resized regions. 
+4. The region proposal bounding boxes are refined by a support vector machine which is trained using CNN features
+
+Fast RCNN:
+1. Generates region proposals using an algorithm e.g. Edge Boxes
+2. Detector processes the entire image 
+3. Fast R-CNN pools CNN features corresponding to each region proposal. 
+(more efficient because the computations for overlapping regions are shared)
+
+Faster R-CNN:
+1.  Adds a region proposal network (RPN) to generate region proposals directly in the network ( doesn't use Edge Boxes)
+(doesn't allow custom region proposal)
+
+
+Research into different implementations:
+https://github.com/HoangPham3003/RCNN-Object-Detection-From-Scratch/tree/main/plot
+https://pyimagesearch.com/2020/07/13/r-cnn-object-detection-with-keras-tensorflow-and-deep-learning/
+https://uk.mathworks.com/help/vision/ug/object-detection-using-faster-r-cnn-deep-learning.html#DeepLearningFasterRCNNObjectDetectionExample-6
+https://github.com/zarif101/rcnn_keras_license_plate/blob/master/rcnn.py
+https://blog.devgenius.io/basic-rcnn-object-detection-from-scratch-using-keras-and-opencv-19e5e43b3dfd
+https://tarunbisht.com/deep%20learning/2024/03/24/pytorch-rcnn-tutorial-object-detection/
+https://towardsdatascience.com/step-by-step-r-cnn-implementation-from-scratch-in-python-e97101ccde55
+
