@@ -1,0 +1,11 @@
+Batch size, Epoch number, learning rate, loss
+15, 10, 0.005, 63%
+15, 20, 0.001, 65% (changing learning rate)
+10, 20, 0.001, 64% (changing batch size)
+12, 20, 0.001, 64% (changing bath size)
+100, 3, 0.001, 29%
+15, 10, 0.003, 64%
+15, 10, 0.004, 62%
+15, 10, 0.0035, 64%
+
+(Note anything before batch_size=20, didn't run correctly)
