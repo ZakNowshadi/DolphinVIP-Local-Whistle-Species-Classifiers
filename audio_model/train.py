@@ -18,6 +18,7 @@ number_samples = 22050
 device_used = "cpu"
 
 def train_epoch(neural_network, data, loss_function, optimiser, device):
+    print(data)
     for input, target in data:
         input, target = input.to(device), target.to(device)
 
@@ -28,11 +29,14 @@ def train_epoch(neural_network, data, loss_function, optimiser, device):
         optimiser.zero_grad()
         # back propogate 
         loss.backward()
+        print(f"training an epoch")
         optimiser.step()
+    # print(f"loss: {loss.item()}")
 
 
 
 def train_model(neural_network, data, loss_function, optimiser, device, num_epochs):
+    print(data)
     for i in range(num_epochs):
         train_epoch(neural_network, data, loss_function, optimiser, device)
     print("finished")
@@ -50,7 +54,7 @@ AUDIO_DIR = "../Audio/"
 # load the data
 data = DolphinWhistleDataset(ANNOTATIONS_FILE, AUDIO_DIR)
 load_data = data_loader(data, batch_size)
-
+print(load_data)
 # create the neural network
 neural_network = Network().to(device_used)
 

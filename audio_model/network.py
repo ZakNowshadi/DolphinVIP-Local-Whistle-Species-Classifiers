@@ -17,7 +17,7 @@ class Network(nn.Module):
         self.linear = nn.Linear(80 * 5 * 3, 10)
 
         # rescales so that the elements of the n-dimensional output are between 0 and 1
-        self.softmax = nn.SoftMax(dim=1)
+        self.softmax = nn.Softmax(dim=1)
 
         # apply sigmoid function
        #  self.output = nn.Sigmoid()

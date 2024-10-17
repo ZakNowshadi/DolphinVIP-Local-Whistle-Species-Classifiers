@@ -15,9 +15,11 @@ class DolphinWhistleDataset(Dataset):
         self.audio_dir = audio_dir
         # no duplicates of audio files 
         name_set=set()
-        for file in os.listdir(audio_dir):
-            if file.endswith('wav'):
-                name_set.add(file)
+        for root, dirs, files in os.walk(audio_dir):
+            for file in files:
+                #print(file)
+                if file.endswith('wav'):
+                    name_set.add(file)
         name_set=list(name_set)
         self.datalist=name_set
 
@@ -50,7 +52,7 @@ class DolphinWhistleDataset(Dataset):
 
     # TODO implement this based off database structure we use
     def _get_audio_sample_path(self, index):
-        fold = f"fold{self.annotations.iloc[index, 1]}"
+        fold = f"{self.annotations.iloc[index, 1]}"
         path = os.path.join(self.audio_dir, fold, self.annotations.iloc[
             index, 0])
         return path
@@ -60,13 +62,18 @@ class DolphinWhistleDataset(Dataset):
         return self.annotations.iloc[index, 0]
     
 if __name__ == "__main__":
-    ANNOTATIONS_FILE = "./Audio/labels.csv"
-    AUDIO_DIR = "./Audio/"
+    ANNOTATIONS_FILE = "/cs/home/ahcg1/Documents/VIP/DolphinVIP-Local-Whistle-Species-Classifiers/Audio/labels.csv"
+    AUDIO_DIR = "/cs/home/ahcg1/Documents/VIP/DolphinVIP-Local-Whistle-Species-Classifiers/Audio/"
     SAMPLE_RATE = 0
 
+    dolphin = DolphinWhistleDataset(ANNOTATIONS_FILE, AUDIO_DIR)
+    # print(len(dolphin))
+    signal, label = dolphin[0]
     # TODO look more into the different settings
+    # print(f"there are {len(dolphin)} samples left")
     mel_spectrogram = torchaudio.transforms.MelSpectrogram(
         sample_rate=SAMPLE_RATE,
         n_fft=1024,
         hop_length=512,
         n_mels=64 )
+    
