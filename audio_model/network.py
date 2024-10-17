@@ -1,15 +1,14 @@
 from torch import nn
 # Using the tutorial: https://www.youtube.com/watch?v=SQ1iIKs190Q
 
-
 class Network(nn.Module):
 
     def __init__(self):
         super().__init__()
         # Four convolutional layers for the neural network, with a ReLu activation function 
-        self.layer1 = nn.sequential(nn.Conv2d(in_channels=1,out_channels=10,kernel_size=3,stride=2,padding=1), nn.ReLU, nn.MaxPool2d(kernel_size=2))
-        self.layer2 = nn.sequential(nn.Conv2d(in_channels=20,out_channels=40,kernel_size=3,stride=2,padding=1), nn.ReLU, nn.MaxPool2d(kernel_size=2))
-        self.layer3 = nn.sequential(nn.Conv2d(in_channels=40,out_channels=80,kernel_size=3,stride=2,padding=1), nn.ReLU, nn.MaxPool2d(kernel_size=2))
+        self.layer1 = nn.Sequential(nn.Conv2d(in_channels=1,out_channels=16,kernel_size=3,stride=1,padding=2),nn.ReLU(),nn.MaxPool2d(kernel_size=2))
+        self.layer2 = nn.Sequential(nn.Conv2d(in_channels=16,out_channels=32,kernel_size=3,stride=1,padding=2), nn.ReLU(), nn.MaxPool2d(kernel_size=2))
+        self.layer3 = nn.Sequential(nn.Conv2d(in_channels=32,out_channels=63,kernel_size=3,stride=1,padding=2), nn.ReLU(), nn.MaxPool2d(kernel_size=2))
 
         # flatten the dimensions
         self.flatten = nn.Flatten()

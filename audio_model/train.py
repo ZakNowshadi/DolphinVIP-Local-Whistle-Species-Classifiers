@@ -10,13 +10,11 @@ from torch.utils.data import DataLoader
 
 
 # parameters that can be changed and should be decided
-batch_size = None
-epochs = None
-learning_rate = None
-data_file = ""
-audio_file = ""
-sample_rate = None
-number_samples = None
+batch_size = 128
+epochs = 10
+learning_rate = 0.001
+sample_rate = 22050
+number_samples = 22050
 device_used = "cpu"
 
 def train_epoch(neural_network, data, loss_function, optimiser, device):
@@ -40,12 +38,17 @@ def train_model(neural_network, data, loss_function, optimiser, device, num_epoc
     print("finished")
 
 
+    
+
 def data_loader(training_data, batch_size):
     data_loader = DataLoader(training_data, batch_size = batch_size)
     return data_loader
 
+ANNOTATIONS_FILE = "../Audio/labels.csv"
+AUDIO_DIR = "../Audio/"
+
 # load the data
-data = DolphinWhistleDataset(data_file, audio_file)
+data = DolphinWhistleDataset(ANNOTATIONS_FILE, AUDIO_DIR)
 load_data = data_loader(data, batch_size)
 
 # create the neural network

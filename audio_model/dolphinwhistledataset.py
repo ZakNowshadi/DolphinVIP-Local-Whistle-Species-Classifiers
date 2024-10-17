@@ -60,8 +60,8 @@ class DolphinWhistleDataset(Dataset):
         return self.annotations.iloc[index, 0]
     
 if __name__ == "__main__":
-    ANNOTATIONS_FILE = ""
-    AUDIO_DIR = ""
+    ANNOTATIONS_FILE = "./Audio/labels.csv"
+    AUDIO_DIR = "./Audio/"
     SAMPLE_RATE = 0
 
     # TODO look more into the different settings
