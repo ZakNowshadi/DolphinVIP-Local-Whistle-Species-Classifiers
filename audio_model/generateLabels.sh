@@ -9,5 +9,3 @@ for species in `ls -d */`; do
         echo $selection,$species >> labels.csv
     done
 done
-
-Audio/bottlenose
