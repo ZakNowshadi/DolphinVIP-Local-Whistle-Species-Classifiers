@@ -50,14 +50,14 @@ class DolphinWhistleDataset(Dataset):
 
     # TODO implement this based off database structure we use
     def _get_audio_sample_path(self, index):
-        fold = f"fold{self.annotations.iloc[index, 5]}"
+        fold = f"fold{self.annotations.iloc[index, 1]}"
         path = os.path.join(self.audio_dir, fold, self.annotations.iloc[
             index, 0])
         return path
     
     # TODO implement this based off database structure we use
     def _get_audio_sample_label(self, index):
-        return self.annotations.iloc[index, 6]
+        return self.annotations.iloc[index, 0]
     
 if __name__ == "__main__":
     ANNOTATIONS_FILE = ""

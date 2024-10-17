@@ -1,6 +1,8 @@
 SELECTION_DIR = ../Audio
 echo $SELECTION_DIR
 
-# for entry in `ls $search_dir`; do
-#     echo $entry
-# done
+for species in `ls $SELECTION_DIR`; do
+    for selection in `ls $species`; do
+        echo $selection,$species >> $SELECTION_DIR/annotations.csv
+    done
+done
