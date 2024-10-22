@@ -19,24 +19,22 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
 
 # Used to normalise the data
 transform = transforms.Compose(
     [transforms.ToTensor(),
      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-batch_size = 4
+BATCH_SIZE = 64
 
 # Download in training set+loader and test set+loader
-trainingImagesDataset = torchvision.datasets.CIFAR10(root='../Images/Training', train=True,
-                                        download=True, transform=transform)
-trainingDataLoader = torch.utils.data.DataLoader(trainingImagesDataset, batch_size=batch_size,
-                                          shuffle=True, num_workers=2)
+trainingImagesDataset = torchvision.datasets.ImageFolder(root='../Images/Training', transform=transform)
+trainingDataLoader = DataLoader(trainingImagesDataset, batch_size=BATCH_SIZE, shuffle=True)
 
-validationImagesDataset = torchvision.datasets.CIFAR10(root='../Images/Validation', train=False,
-                                       download=True, transform=transform)
-validationDataLoader = torch.utils.data.DataLoader(validationImagesDataset, batch_size=batch_size,
-                                         shuffle=False, num_workers=2)
+# Getting the test images from the Images/Validation folder
+validationImagesDataset = torchvision.datasets.ImageFolder(root='../Images/Validation', transform=transform)
+validationDataLoader = DataLoader(validationImagesDataset, batch_size=BATCH_SIZE, shuffle=True)
 
 classes = ('bottlenose', 'common', 'melon-headed')
 
@@ -51,9 +49,9 @@ class Net(nn.Module):
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc1 = nn.Linear(75200, 120)
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, 3)
 
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
