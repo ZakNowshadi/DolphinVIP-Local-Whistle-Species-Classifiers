@@ -33,7 +33,7 @@ def train_epoch(neural_network, data, loss_function, optimiser, device):
         loss.backward()
         # dprint(f"training an epoch")
         optimiser.step()
-    print(f"loss: {loss.item()}")
+    # print(f"loss: {loss.item()}")
 
 
 
